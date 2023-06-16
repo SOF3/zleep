@@ -1,0 +1,17 @@
+root = true
+
+[*.php]
+indent_style = tab
+indent_size = 4
+
+[*.json]
+indent_style = space
+indent_size = 4
+
+[*.yml]
+indent_style = space
+indent_size = 2
+
+[*.neon]
+indent_style = space
+indent_size = 2

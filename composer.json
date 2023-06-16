@@ -1,0 +1,27 @@
+{
+    "name": "sof3/zleep",
+    "license": "Apache-2.0",
+    "type": "library",
+    "scripts": {
+        "fmt": "vendor/bin/php-cs-fixer fix",
+        "analyze": "vendor/bin/phpstan"
+    },
+    "require": {
+        "pocketmine/pocketmine-mp": "^5.0.0",
+        "sof3/await-generator": "^3.5.2"
+    },
+    "require-dev": {
+        "sof3/pharynx": "^0.3.0",
+        "friendsofphp/php-cs-fixer": "^3.4",
+        "phpstan/phpstan": "^1.2"
+    },
+    "autoload": {
+        "classmap": ["src"]
+    },
+    "extra": {
+        "virion": {
+            "spec": "3.0",
+            "namespace-root": "SOFe\\Zleep"
+        }
+    }
+}
