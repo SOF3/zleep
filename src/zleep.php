@@ -46,12 +46,22 @@ final class Zleep {
 	 * Sleep until the given timestamp.
 	 */
 	public static function sleepUntilTimestamp(Plugin $plugin, float $target) : Generator {
-		$heap = self::$clockLoop ?? new TimestampHeap;
-		$promise = Await::promise(fn($resolve) => $heap->insert($target, $resolve));
-		if (self::$clockLoop === null) {
-			Await::g2c(self::runClockLoop($plugin, $heap));
+		/** @var null|ResolveWrapper $resolveWrapper */
+		$resolveWrapper = null;
+		try{
+			yield from Await::promise(static function($resolve) use($plugin, $target, &$resolveWrapper) : void {
+				$resolveWrapper = new ResolveWrapper($resolve);
+				$heap = self::$clockLoop ?? new TimestampHeap;
+				$heap->insert($target, $resolveWrapper);
+				if (self::$clockLoop === null) {
+					Await::g2c(self::runClockLoop($plugin, $heap));
+				}
+			});
+		}finally{
+			if ($resolveWrapper !== null) {
+				$resolveWrapper->cancel();
+			}
 		}
-		yield from $promise;
 	}
 
 	private static ?TimestampHeap $clockLoop = null;
@@ -64,9 +74,12 @@ final class Zleep {
 				continue;
 			}
 
-			$closure = $heap->shift();
-			if ($closure !== null) {
-				$closure();
+			$resolveWrapper = $heap->shift();
+			if ($resolveWrapper !== null) {
+				$closure = $resolveWrapper->getClosure();
+				if ($closure !== null) {
+					$closure();
+				}
 			}
 		}
 
@@ -74,11 +87,28 @@ final class Zleep {
 	}
 }
 
+/** @internal */
+final class ResolveWrapper{
+
+	/** @param (Closure(): void)|null $closure */
+	public function __construct(private ?Closure $closure) {
+	}
+
+	/** @return (Closure(): void)|null */
+	public function getClosure() : ?Closure {
+		return $this->closure;
+	}
+
+	public function cancel() : void {
+		$this->closure = null;
+	}
+}
+
 /**
  * @internal
  */
 final class TimestampHeap {
-	/** @var ReversePriorityQueue<float, Closure(): void> */
+	/** @var ReversePriorityQueue<float, \SOFe\Zleep\ResolveWrapper> */
 	private ReversePriorityQueue $queue;
 
 	public function __construct() {
@@ -86,10 +116,10 @@ final class TimestampHeap {
 	}
 
 	/**
-	 * @param Closure(): void $callback
+	 * @param \SOFe\Zleep\ResolveWrapper $resolveWrapper
 	 */
-	public function insert(float $target, Closure $callback) : void {
-		$this->queue->insert($callback, $target);
+	public function insert(float $target, ResolveWrapper $resolveWrapper) : void {
+		$this->queue->insert($resolveWrapper, $target);
 	}
 
 	public function getRemaining() : float {
@@ -104,15 +134,15 @@ final class TimestampHeap {
 	}
 
 	/**
-	 * @return Closure(): void
+	 * @return null|\SOFe\Zleep\ResolveWrapper
 	 */
-	public function shift() : ?Closure {
+	public function shift() : ?ResolveWrapper {
 		if ($this->queue->isEmpty()) {
 			return null;
 		}
 
 		$this->queue->setExtractFlags(SplPriorityQueue::EXTR_DATA);
-		/** @var Closure(): void $extract */
+		/** @var \SOFe\Zleep\ResolveWrapper $extract */
 		$extract = $this->queue->extract();
 		return $extract;
 	}
