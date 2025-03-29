@@ -108,7 +108,7 @@ final class ResolveWrapper{
  * @internal
  */
 final class TimestampHeap {
-	/** @var ReversePriorityQueue<float, \SOFe\Zleep\ResolveWrapper> */
+	/** @var ReversePriorityQueue<float, ResolveWrapper> */
 	private ReversePriorityQueue $queue;
 
 	public function __construct() {
@@ -116,7 +116,7 @@ final class TimestampHeap {
 	}
 
 	/**
-	 * @param \SOFe\Zleep\ResolveWrapper $resolveWrapper
+	 * @param ResolveWrapper $resolveWrapper
 	 */
 	public function insert(float $target, ResolveWrapper $resolveWrapper) : void {
 		$this->queue->insert($resolveWrapper, $target);
@@ -134,7 +134,7 @@ final class TimestampHeap {
 	}
 
 	/**
-	 * @return null|\SOFe\Zleep\ResolveWrapper
+	 * @return null|ResolveWrapper
 	 */
 	public function shift() : ?ResolveWrapper {
 		if ($this->queue->isEmpty()) {
@@ -142,7 +142,7 @@ final class TimestampHeap {
 		}
 
 		$this->queue->setExtractFlags(SplPriorityQueue::EXTR_DATA);
-		/** @var \SOFe\Zleep\ResolveWrapper $extract */
+		/** @var ResolveWrapper $extract */
 		$extract = $this->queue->extract();
 		return $extract;
 	}
