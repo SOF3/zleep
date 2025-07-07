@@ -19,6 +19,8 @@ use function microtime;
 final class Zleep {
 	/**
 	 * Sleep for the specified number of ticks.
+	 *
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator<mixed, mixed, mixed, mixed>, mixed, void>
 	 */
 	public static function sleepTicks(Plugin $plugin, int $ticks) : Generator {
 		/** @var ?TaskHandler $handler */
@@ -37,6 +39,8 @@ final class Zleep {
 
 	/**
 	 * Sleep until $seconds seconds have passed
+	 *
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator<mixed, mixed, mixed, mixed>, mixed, void>
 	 */
 	public static function sleepSeconds(Plugin $plugin, float $seconds) : Generator {
 		yield from self::sleepUntilTimestamp($plugin, microtime(true) + $seconds);
@@ -44,6 +48,8 @@ final class Zleep {
 
 	/**
 	 * Sleep until the given timestamp.
+	 *
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator<mixed, mixed, mixed, mixed>, mixed, void>
 	 */
 	public static function sleepUntilTimestamp(Plugin $plugin, float $target) : Generator {
 		/** @var null|ResolveWrapper $resolveWrapper */
@@ -65,6 +71,9 @@ final class Zleep {
 	}
 
 	private static ?TimestampHeap $clockLoop = null;
+	/**
+	 * @return Generator<mixed, Await::RESOLVE|null|Await::RESOLVE_MULTI|Await::REJECT|Await::ONCE|Await::ALL|Await::RACE|Generator<mixed, mixed, mixed, mixed>, mixed, void>
+	 */
 	private static function runClockLoop(Plugin $plugin, TimestampHeap $heap) : Generator {
 		self::$clockLoop = $heap;
 
